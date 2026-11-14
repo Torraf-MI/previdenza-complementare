@@ -1,0 +1,166 @@
+{
+  "lavoratore": {
+    "nome": "Giulia Conti",
+    "eta": 33,
+    "ral": 32000,
+    "eta_pensione": 68,
+    "sesso": "F",
+    "anni_contributi": 6,
+    "crescita_reale": 0.02,
+    "eta_fine_crescita": 50,
+    "montante_inps": null,
+    "tfr_pregresso": 12500,
+    "anni_tfr_pregresso": 6,
+    "tasso_sostituzione_obiettivo": 0.8,
+    "crescita_pil_reale": 0.008,
+    "riduzione_coefficienti": 0.004,
+    "densita_contributiva": 0.9
+  },
+  "contributo_lavoratore": 0.012,
+  "contributo_datore": 0.02,
+  "comparto": "life_cycle",
+  "mercato": {
+    "azioni": 0.065,
+    "vol_azioni": 0.16,
+    "obbligazioni": 0.03,
+    "vol_obbligazioni": 0.055,
+    "correlazione": 0.15,
+    "inflazione": 0.02,
+    "vol_inflazione": 0.01,
+    "persistenza_inflazione": 0.6,
+    "liquidita_spread": 0.0025
+  },
+  "costi": {
+    "fondo_negoziale": 0.003,
+    "fondo_negoziale_garantito": 0.0045,
+    "quota_associativa": 22.0,
+    "pip": 0.019,
+    "etf": 0.002,
+    "commissioni_pac": 18.0
+  },
+  "rendita": {
+    "tasso_tecnico": 0.0,
+    "caricamento": 0.015,
+    "rivalutazione": 0.015,
+    "azioni_capitale": 0.4,
+    "costo_capitale": 0.004,
+    "quota_capitale": 0.5
+  },
+  "strategie": [
+    {
+      "nome": "TFR in azienda",
+      "tfr": "azienda",
+      "fondo": null,
+      "contributo_lavoratore": 0.0,
+      "contributo_datore": 0.0,
+      "deducibile": true,
+      "risparmio": {
+        "nome": "Conto deposito",
+        "comparto": null,
+        "costo": 0.0,
+        "costo_fisso": 0.0,
+        "bollo": true,
+        "tassazione": "interessi"
+      },
+      "descrizione": "Il TFR resta in azienda; il risparmio va su un conto deposito"
+    },
+    {
+      "nome": "TFR in azienda + PAC in ETF",
+      "tfr": "azienda",
+      "fondo": null,
+      "contributo_lavoratore": 0.0,
+      "contributo_datore": 0.0,
+      "deducibile": true,
+      "risparmio": {
+        "nome": "PAC in ETF life-cycle",
+        "comparto": "life_cycle",
+        "costo": 0.002,
+        "costo_fisso": 18.0,
+        "bollo": true,
+        "tassazione": "plusvalenze"
+      },
+      "descrizione": "Il TFR resta in azienda; il risparmio va in un piano di accumulo in ETF con la stessa asset allocation del fondo"
+    },
+    {
+      "nome": "Fondo negoziale: solo TFR",
+      "tfr": "fondo",
+      "fondo": {
+        "nome": "Fondo negoziale life-cycle",
+        "comparto": "life_cycle",
+        "costo": 0.003,
+        "costo_fisso": 22.0,
+        "bollo": false,
+        "tassazione": "fondo"
+      },
+      "contributo_lavoratore": 0.0,
+      "contributo_datore": 0.0,
+      "deducibile": true,
+      "risparmio": {
+        "nome": "PAC in ETF life-cycle",
+        "comparto": "life_cycle",
+        "costo": 0.002,
+        "costo_fisso": 18.0,
+        "bollo": true,
+        "tassazione": "plusvalenze"
+      },
+      "descrizione": "Al fondo solo il TFR, senza contributo proprio (e quindi senza quello del datore); il risparmio va nel PAC"
+    },
+    {
+      "nome": "Fondo negoziale garantito",
+      "tfr": "fondo",
+      "fondo": {
+        "nome": "Fondo negoziale garantito",
+        "comparto": "garantito",
+        "costo": 0.0045,
+        "costo_fisso": 22.0,
+        "bollo": false,
+        "tassazione": "fondo"
+      },
+      "contributo_lavoratore": 0.012,
+      "contributo_datore": 0.02,
+      "deducibile": true,
+      "risparmio": null,
+      "descrizione": "TFR, contributo del 1,2% e del datore del 2,0% nel comparto garantito"
+    },
+    {
+      "nome": "Fondo negoziale life-cycle",
+      "tfr": "fondo",
+      "fondo": {
+        "nome": "Fondo negoziale life-cycle",
+        "comparto": "life_cycle",
+        "costo": 0.003,
+        "costo_fisso": 22.0,
+        "bollo": false,
+        "tassazione": "fondo"
+      },
+      "contributo_lavoratore": 0.012,
+      "contributo_datore": 0.02,
+      "deducibile": true,
+      "risparmio": null,
+      "descrizione": "TFR, contributo del 1,2% e del datore del 2,0% nel percorso life-cycle"
+    },
+    {
+      "nome": "PIP assicurativo",
+      "tfr": "fondo",
+      "fondo": {
+        "nome": "PIP life-cycle",
+        "comparto": "life_cycle",
+        "costo": 0.019,
+        "costo_fisso": 0.0,
+        "bollo": false,
+        "tassazione": "fondo"
+      },
+      "contributo_lavoratore": 0.012,
+      "contributo_datore": 0.0,
+      "deducibile": true,
+      "risparmio": null,
+      "descrizione": "TFR e contributo del 1,2% in un piano individuale; il contributo del datore si perde"
+    }
+  ],
+  "anticipazioni": [],
+  "riferimento": "TFR in azienda",
+  "fondo": "Fondo negoziale life-cycle",
+  "alternativa": "TFR in azienda + PAC in ETF",
+  "scenari": 2000,
+  "seme": 7
+}

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Previdenza complementare – {{ nome }}</title>
+{% if plotly_inline %}<script>{{ plotly_inline | safe }}</script>{% else %}<script src="{{ plotly_cdn }}"></script>{% endif %}
+<style>
+  :root { --blu: #1f4e79; --grigio: #595959; --chiaro: #f2f5f9; }
+  body { font-family: "Segoe UI", Helvetica, Arial, sans-serif; color: #222; max-width: 1000px;
+         margin: 0 auto; padding: 32px 16px 60px; line-height: 1.5; background: #fff; }
+  header { border-bottom: 3px solid var(--blu); padding-bottom: 12px; margin-bottom: 24px; }
+  h1 { color: var(--blu); margin: 0 0 4px; font-size: 1.7rem; }
+  h2 { color: var(--blu); font-size: 1.2rem; margin-top: 38px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  h3 { font-size: 1rem; margin: 22px 0 6px; }
+  .sub { color: var(--grigio); font-size: .92rem; }
+  .kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 16px 0; }
+  .kpi div { background: var(--chiaro); border-radius: 8px; padding: 12px 14px; }
+  .kpi b { display: block; font-size: 1.3rem; color: var(--blu); }
+  .kpi span { font-size: .78rem; color: var(--grigio); text-transform: uppercase; letter-spacing: .03em; }
+  .kpi small { display: block; font-size: .8rem; color: var(--grigio); }
+  .esito { border-left: 5px solid #fab219; background: #fff8e8; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+  .azione { border-left: 5px solid #1baf7a; background: #effaf5; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: .86rem; margin: 10px 0; }
+  th, td { padding: 6px 9px; text-align: right; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
+  th:first-child, td:first-child { text-align: left; }
+  td.testo, th.testo { text-align: left; }
+  th { background: var(--blu); color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  tr.evidenza td { font-weight: 600; background: #effaf5; }
+  tr.rif td { font-style: italic; }
+  .scroll { overflow-x: auto; }
+  .scroll table { white-space: nowrap; }
+  .grafico { margin: 14px 0; overflow: hidden; }
+  .note { font-size: .8rem; color: var(--grigio); background: var(--chiaro); padding: 12px 14px; border-radius: 6px; }
+  .strumenti { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .strumenti div { border: 1px solid #e3e6ea; border-radius: 8px; padding: 10px 14px; font-size: .9rem; }
+  .strumenti h3 { margin-top: 4px; color: var(--blu); }
+  ul { padding-left: 20px; }
+  @media print { .grafico { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Previdenza complementare: TFR, fondo pensione o PAC?</h1>
+  <div class="sub">Preparato per <b>{{ nome }}</b>, {{ eta }} anni, RAL {{ ral }} · regole 2026 · report del {{ oggi }}</div>
+</header>
+{% if data_note %}<p class="note">{{ data_note }}</p>{% endif %}
+
+<h2>Sintesi</h2>
+<div class="kpi">
+  {% for label, value, n in kpi %}<div><span>{{ label }}</span><b>{{ value }}</b><small>{{ n }}</small></div>{% endfor %}
+</div>
+<div class="azione">A parità di sforzo netto, <b>«{{ fondo }}»</b> porta al pensionamento il capitale netto più alto.
+Versare il {{ contr_lav }} della retribuzione costa a {{ nome_breve }} {{ budget_anno }} l'anno, perché il fisco ne
+rimborsa una parte, e fa scattare il contributo del datore del {{ contr_dat }}. Tutti gli importi sono in euro di
+oggi, cioè al netto dell'inflazione.</div>
+
+<h2>La pensione pubblica</h2>
+<p>Con il sistema contributivo la pensione è il <b>montante</b> dei contributi versati (il 33% della retribuzione,
+rivalutato ogni anno con la crescita del PIL) moltiplicato per un <b>coefficiente di trasformazione</b> che dipende
+dall'età di pensionamento e si riduce quando cresce la speranza di vita. Per {{ nome_breve }}, con
+{{ anni_contributi }} anni di contributi a {{ eta_pensione }} anni (una densità contributiva del {{ densita }} negli anni
+futuri) e una crescita reale del PIL dello {{ pil }}, il montante vale {{ inps.montante }} e il coefficiente il
+{{ coeff }}.</p>
+<table>
+  <tr><th>Voce</th><th>Importo annuo (€ di oggi)</th></tr>
+  <tr><td>Ultima retribuzione lorda</td><td>{{ inps.ultima_ral }}</td></tr>
+  <tr><td>Ultimo stipendio netto</td><td>{{ inps.ultimo_netto }}</td></tr>
+  <tr><td>Pensione INPS lorda</td><td>{{ inps.lorda }} ({{ sost_lorda }} dell'ultima RAL)</td></tr>
+  <tr><td>Pensione INPS netta</td><td>{{ inps.netta }} ({{ sost_netta }} dell'ultimo netto)</td></tr>
+  <tr><td>Obiettivo ({{ obiettivo_pct }} dell'ultimo netto)</td><td>{{ inps.obiettivo }}</td></tr>
+  <tr class="evidenza"><td>Gap da coprire</td><td>{{ inps.gap if gap else "nessuno" }}</td></tr>
+</table>
+<p>La stima dipende da ipotesi lontane nel tempo. La tabella mostra il tasso di sostituzione netto al variare della
+crescita del PIL e dell'età di uscita: ogni anno di lavoro in più vale circa quattro punti.</p>
+<table>
+  <tr><th>Crescita del PIL</th>{% for c in sensibilita.colonne %}<th>{{ c }} anni</th>{% endfor %}</tr>
+  {% for r in sensibilita.righe %}<tr><td>{{ r.nome }}</td>{% for v in r.valori %}<td>{{ v }}</td>{% endfor %}</tr>{% endfor %}
+</table>
+<div class="grafico">{{ grafici.pensione | safe }}</div>
+
+<h2>Le regole</h2>
+<div class="strumenti">
+  <div><h3>TFR in azienda</h3>Ogni anno matura il 6,91% della retribuzione. È rivalutato all'1,5% più il 75%
+  dell'inflazione, con un'imposta del 17% sulla rivalutazione. Alla fine è tassato con la tassazione separata,
+  all'aliquota media IRPEF del reddito di riferimento: per {{ nome_breve }} il {{ aliquota_tfr }}.</div>
+  <div><h3>Fondo pensione</h3>Riceve il TFR, il contributo del lavoratore e quello del datore, che il contratto
+  collettivo riconosce solo a chi aderisce al fondo di categoria e versa il minimo. I rendimenti sono tassati al 20%
+  ogni anno (12,5% sui titoli di Stato); i fondi non pagano l'imposta di bollo.</div>
+  <div><h3>Deducibilità</h3>I contributi del lavoratore e del datore si deducono dal reddito fino a {{ limite }}
+  l'anno (dal 2026; il TFR non conta nel limite). Per {{ nome_breve }} ogni euro versato ne fa risparmiare
+  {{ marginale }} di imposte, contando le detrazioni che si perdono al crescere del reddito.</div>
+  <div><h3>Tassazione all'uscita</h3>TFR e contributi dedotti sono tassati al 15%, che scende dello 0,30% per ogni
+  anno di partecipazione oltre il quindicesimo fino al 9% dopo 35 anni. I rendimenti sono già stati tassati. Per
+  {{ nome_breve }}: {{ aliquota_uscita }}.</div>
+  <div><h3>Anticipazioni e riscatti</h3>Fino al 75% in ogni momento per spese sanitarie (tassate al 15-9%), fino al
+  75% dopo 8 anni per la prima casa e fino al 30% per altre esigenze (al 23%). Il TFR in azienda si può anticipare una
+  sola volta, fino al 70%, dopo 8 anni.</div>
+  <div><h3>PAC in ETF</h3>Nessuna deduzione e nessun contributo del datore, ma piena libertà. Costi bassi, imposta
+  di bollo dello 0,2% l'anno, 26% sulle plusvalenze (12,5% sulla quota di titoli di Stato) solo alla vendita.</div>
+</div>
+<div class="grafico">{{ grafici.deduzione | safe }}</div>
+<div class="grafico">{{ grafici.aliquote | safe }}</div>
+
+<h2>Il confronto delle strategie</h2>
+<p>Tutte le strategie partono dallo stesso <b>sforzo netto</b>: {{ budget_anno }} il primo anno, cioè quanto costa a
+{{ nome_breve }} versare il {{ contr_lav }} della retribuzione al fondo dopo il rimborso IRPEF. Dove non c'è un
+fondo con il contributo del lavoratore, la stessa somma va nel PAC in ETF o sul conto deposito. Il PAC investe come il
+fondo (percorso life-cycle), così la differenza dipende solo dalle regole e dai costi. Proiezione con i rendimenti
+mediani: azioni {{ pct(mercato.azioni, 1) }} e obbligazioni {{ pct(mercato.obbligazioni, 1) }} nominali in media,
+inflazione {{ pct(mercato.inflazione, 0) }}.</p>
+<div class="grafico">{{ grafici.composizione | safe }}</div>
+<div class="scroll"><table>
+  <tr><th>Strategia</th><th>Sforzo netto</th><th>Datore</th><th>Rimborso IRPEF</th><th>Capitale lordo</th><th>Costi</th><th>Imposte sui rendimenti</th><th>Imposte all'uscita</th><th>Capitale netto</th><th>Rendita al mese</th><th>Rispetto a «{{ rif }}»</th></tr>
+  {% for s in strategie %}<tr class="{{ 'evidenza' if s.migliore }} {{ 'rif' if s.rif }}"><td>{{ s.nome }}</td><td>{{ s.sforzo }}</td><td>{{ s.datore }}</td><td>{{ s.fisco }}</td><td>{{ s.lordo }}</td><td>{{ s.costi }}</td><td>{{ s.imp_rend }}</td><td>{{ s.imp_uscita }}</td><td>{{ s.netto }}</td><td>{{ s.rendita }}</td><td>{{ s.diff }}</td></tr>{% endfor %}
+</table></div>
+<table>
+  <tr><th>Strategia</th><th class="testo">Che cosa prevede</th></tr>
+  {% for s in strategie %}<tr><td>{{ s.nome }}</td><td class="testo">{{ s.descrizione }}</td></tr>{% endfor %}
+</table>
+<p class="note">Costi annui ipotizzati: fondo negoziale {{ pct(costi.fondo_negoziale, 2) }} più {{ eur(costi.quota_associativa) }}
+di quota associativa (garantito {{ pct(costi.fondo_negoziale_garantito, 2) }}), PIP {{ pct(costi.pip, 1) }}, ETF
+{{ pct(costi.etf, 2) }} più {{ eur(costi.commissioni_pac) }} di commissioni e lo 0,2% di bollo. Sono valori tipici
+degli indicatori sintetici di costo pubblicati dalla COVIP. La rendita è calcolata con lo stesso coefficiente per tutte
+le strategie ({{ fattore }} € di capitale per 1 € di rendita annua).{% if anticipazioni %} Anticipazioni:
+{% for x in anticipazioni %}{{ x.importo }} a {{ x.eta }} anni ({{ x.tipo }}){% if not loop.last %}, {% endif %}{% endfor %}.{% endif %}</p>
+
+<h3>Da dove viene il vantaggio</h3>
+<p>Il passaggio dal PAC al fondo negoziale, una differenza alla volta.</p>
+<div class="grafico">{{ grafici.scomposizione | safe }}</div>
+<table>
+  <tr><th>Passo</th><th>Effetto</th><th>Capitale netto</th></tr>
+  {% for r in scomp %}<tr><td>{{ r.passo }}</td><td>{{ r.effetto }}</td><td>{{ r.netto }}</td></tr>{% endfor %}
+</table>
+<div class="esito">Il vantaggio del fondo non viene dalla fiscalità dei rendimenti, che è simile a quella di un ETF.
+Viene dal <b>contributo del datore</b>, che fuori dal fondo non esiste, dal <b>TFR investito</b> invece che rivalutato
+in azienda e dal <b>rimborso IRPEF</b>.</div>
+
+{% if sim %}
+<h2>La simulazione</h2>
+<p>{{ scenari }} scenari di rendimenti di azioni e obbligazioni e di inflazione, gli stessi per tutte le strategie.</p>
+<div class="grafico">{{ grafici.simulazione | safe }}</div>
+<div class="scroll"><table>
+  <tr><th>Strategia</th><th>Capitale netto mediano</th><th>5° percentile</th><th>95° percentile</th><th>Rendita mensile mediana</th><th>Meglio di «{{ rif }}»</th><th>Meglio del PAC</th></tr>
+  {% for r in sim %}<tr class="{{ 'evidenza' if r.migliore }}"><td>{{ r.nome }}</td><td>{{ r.mediana }}</td><td>{{ r.p5 }}</td><td>{{ r.p95 }}</td><td>{{ r.rendita }}</td><td>{{ r.vs_rif }}</td><td>{{ r.vs_pac }}</td></tr>{% endfor %}
+</table></div>
+<div class="grafico">{{ grafici.accumulo | safe }}</div>
+{% endif %}
+
+<h2>Per chi conviene</h2>
+<p>Lo stesso confronto tra fondo negoziale e PAC per età di adesione e reddito, con il contratto di {{ nome_breve }}
+(contributo del {{ contr_lav }} e del datore del {{ contr_dat }}). Il vantaggio va dal {{ mappa_min }} al {{ mappa_max }}:
+cresce con il reddito, perché la deduzione vale di più, e con gli anni di adesione.</p>
+<div class="grafico">{{ grafici.mappa | safe }}</div>
+
+<h2>In pensione: rendita o capitale?</h2>
+<p>Almeno il {{ quota_rendita }} del montante va
+convertito in rendita, salvo che la rendita sia molto piccola. La rendita vitalizia è un'assicurazione contro una
+vita lunga: costa un caricamento e lascia nulla agli eredi, ma non finisce mai. Il capitale gestito in proprio lascia
+un'eredità, ma può finire prima. La rendita a durata definita, introdotta nel 2026, paga per gli anni della speranza
+di vita e lascia il residuo agli eredi.</p>
+<div class="grafico">{{ grafici.prestazione | safe }}</div>
+<div class="scroll"><table>
+  <tr><th>Opzione</th><th>Reddito netto il primo anno</th><th>Reddito medio da vivo</th><th>Totale incassato medio</th><th>Probabilità che il capitale finisca in vita</th><th>Eredità media</th></tr>
+  {% for o in opzioni %}<tr><td>{{ o.nome }}</td><td>{{ eur(o["Reddito netto iniziale"]) }}</td><td>{{ eur(o["Reddito medio da vivo"]) }}</td><td>{{ eur(o["Totale incassato medio"]) }}</td><td>{{ pct(o["Probabilità di esaurire il capitale"], 0) }}</td><td>{{ eur(o["Eredità media"]) }}</td></tr>{% endfor %}
+</table></div>
+<table>
+  <tr><th>Opzione</th><th class="testo">Come funziona</th></tr>
+  {% for o in opzioni %}<tr><td>{{ o.nome }}</td><td class="testo">{{ o.descrizione }}</td></tr>{% endfor %}
+</table>
+
+<h2>Ipotesi e avvertenze</h2>
+<ul>
+  <li>Regole del 2026: TUIR, D.Lgs. 252/2005 come modificato dalla L. 199/2025 (deducibilità a 5.300 €, nuove
+  prestazioni), coefficienti di trasformazione 2025-2026. Le soglie IRPEF sono trattate come indicizzate
+  all'inflazione.</li>
+  <li>I comparti sono stilizzati: {% for c in comparti %}{{ c.nome }} ({{ c.descrizione }}){% if not loop.last %}; {% endif %}{% endfor %}.</li>
+  <li>Non sono considerati il cambio di lavoro e i riscatti, l'extra-deducibilità per i giovani, la RITA, la
+  tassazione al 26% della parte finanziaria della rendita, il cuneo fiscale oltre il 2026, il cumulo con altri
+  redditi in pensione.</li>
+  <li>Il caso è di fantasia. Il report ha scopo dimostrativo e non costituisce consulenza finanziaria, fiscale né
+  previdenziale.</li>
+</ul>
+</body>
+</html>
